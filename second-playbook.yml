@@ -1,14 +1,15 @@
+
 #this playbook is used to copy files to node servers
 ---
-- host: all #it will pick the all nodes servers
+- hosts: all #it will pick the all nodes servers
   become: true #it will get root access
-  remote_user: ec2-user #root user that can access node servers
   tasks:
       - name: Copy files to nodes
-        copy: src = /home/ubuntu/thop #source destination path
-              dest = /temp/ #target destination path
-              owner = root #user name
-              group = root #group name
-              mode = 0666 #file permissions
+        copy:
+          src: /tmp/thop #source destination path
+          dest: /home/ubuntu #target destination path
+          owner: root #user name
+          group: root #group name
+          mode: 0666 #file permissions
 ...
- 
+
