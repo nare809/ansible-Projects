@@ -1,0 +1,11 @@
+# first and base playbook
+---
+-host: all #it will pick the all nodes servers
+ gather_facts: no #this will check hardware working fine
+ remote_user: ec2-user #root user that can access node servers
+ tasks:
+     -name: Test connection
+      ping:    #module
+      remote_user: ec2-user #run commands by which users you want
+---
+ 
