@@ -1,3 +1,4 @@
+#this playbook this used to copy files to node servers
 ---
 -host: all #it will pick the all nodes servers
  gather_facts: no #this will check hardware working fine
