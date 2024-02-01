@@ -1,7 +1,7 @@
-# first and base playbook it will ping the node servers
+# First and base playbook will ping the node servers
 ---
 - hosts: all #it will pick the all nodes servers
-  gather_facts: yes #this will check hardware working fine
+  gather_facts: yes #this will check hardware is working fine
   remote_user: ubuntu #root user that can access node servers
   tasks:
      - name: Test connection
