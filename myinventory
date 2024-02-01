@@ -1,0 +1,24 @@
+n1 ansible_host=172.31.21.39
+n2 ansible_host=172.31.17.39
+n3 ansible_host=172.31.22.58 ansible_user=ubuntu
+n4 ansible_host=172.31.30.223 ansible_user=ubuntu
+n5 ansible_host=172.31.28.18  ansible_user=ubuntu
+[loadbalancers]
+n4
+
+[databases]
+n5
+
+[webservers]
+n1
+n2
+n3
+
+[allservers:children]
+webservers
+loadbalancers
+databases
+
+[allservers:vars]
+ansible_user=ec2-user
+ansible_ssh_private_key_file=/tmp/cloud.pem
