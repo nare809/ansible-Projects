@@ -1,0 +1,31 @@
+---
+- hosts: all
+  become: true
+  tasks:
+     - name: Install Apache HTTP Server
+       apt:
+         name: apache2
+         update_cache: yes
+         state: latest
+
+     - name: Start HTTP Server
+       service:
+         name: apache2
+         enabled: yes
+         state: started
+
+     - name: Copy Index Page
+       copy:
+         src: /home/ubuntu/thop/index.html  # Update this path to the actual lo>
+         dest: /var/www/html/index.html
+         mode: 0644  # Set appropriate permissions for the file
+       notify:
+         - Restart Apache  # Notify the handler to restart Apache if the index >
+
+  handlers:
+    - name: Restart Apache
+      service:
+        name: apache2
+        state: restarted
+...
+
