@@ -1,0 +1,11 @@
+
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Install git
+      apt: name=git state=present
+    - name: git clone
+      git:
+        repo: 'https://github.com/nare809/ansible-files.git'
+        dest: /home/ubuntu/git
