@@ -1,57 +1,69 @@
 ---
 - hosts: localhost
   gather_facts: false
-  become: true
   tasks:
-  - name: install wget
+  - name: Install wget
     apt:
-     name: wget
-     state: present
+      name: wget
+    become: true
+
   - name: Install Java
-      apt: name={{ item }} update_cache=yes state=present
-      with_items:
-          - openjdk-17-jdk
-          
-  - name: download jenkins key
-    ansible.builtin.get_url:
+    apt:
+      name: openjdk-17-jdk
+      update_cache: yes
+    become: true
+
+  - name: Add Jenkins key
+    apt_key:
       url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
-      dest: /usr/share/keyrings/jenkins-keyring.asc
+      state: present
+    become: true
 
   - name: Add Jenkins repo
-    ansible.builtin.apt_repository:
+    apt_repository:
       repo: deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/
       state: present
-      filename: jenkins.list  
+      filename: jenkins.list
+    become: true
 
   - name: Update all packages to their latest version
     apt:
       name: "*"
       state: latest
+    become: true
 
   - name: Install fontconfig
-    shell: apt install fontconfig -y 
+    apt:
+      name: fontconfig
+    become: true
 
-    - name: Install the Jenkins
-    ansible.builtin.apt:
+  - name: Install Jenkins
+    apt:
       name: jenkins
-      state: present  
+    become: true
+    notify: restart jenkins
 
-  - name: Make sure a service unit is running
-    ansible.builtin.systemd:
-      state: started
+  - name: Wait for Jenkins to start
+    wait_for:
+      delay: 30
+      port: 8080
+
+  - name: Get initial admin password for Jenkins
+    uri:
+      url: http://localhost:8080/login?from=%2F
+      return_content: yes
+      follow_redirects: all
+    register: result
+    changed_when: false
+
+  - name: Print initial admin password for Jenkins
+    debug:
+      msg: "The initial admin password for Jenkins is {{ result.content | regex_search('(?<=<pre>)(.*?)(?=</pre>)') }}"
+
+  handlers:
+  - name: restart jenkins
+    systemd:
+      state: restarted
       name: jenkins
       enabled: yes
-
-  - name: sleep for 30 seconds and continue with play
-    wait_for:
-     delay: 30
-     port: 8080
-
-  - name: init password jenkin
-    shell: cat /var/lib/jenkins/secrets/initialAdminPassword
-    changed_when: false
-    register: result
-
-  - name: print init password jenkins
-    debug:
-     var: result.stdout
+    become: true
