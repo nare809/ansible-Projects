@@ -22,20 +22,20 @@ pipeline{
         stage('Upload War To Nexus'){
             steps{
                   nexusArtifactUploader artifacts: [
-                       [
-                            artifactId: 'myweb', 
-                            classifier: '', 
-                            file: "target/myweb-8.2.0.war", 
-                            type: 'war'
-                       ]
-                  ], 
-                  credentialsId: 'nexus3', 
-                  groupId: 'in.javahome', 
-                  nexusUrl: '172.31.16.89:8081', 
-                  nexusVersion: 'nexus3', 
-                  protocol: 'http', 
-                  repository: 'sample-releases', 
-                  version: '8.2.0'  
+                        [
+                                artifactId: 'myweb', 
+                                classifier: '', 
+                                file: 'target/myweb-8.2.0.war', 
+                                type: 'war'
+                        ]
+                    ], 
+                        credentialsId: 'nexus-id', 
+                        groupId: 'in.javahome', 
+                        nexusUrl: '13.250.98.75:8081', 
+                        nexusVersion: 'nexus3', 
+                        protocol: 'http', 
+                        repository: 'test-release', 
+                        version: '8.2.0'  
               }
             }
         stage("Execute Ansible"){
