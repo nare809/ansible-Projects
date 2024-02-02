@@ -1,10 +1,10 @@
 - hosts: tag_Name_tomcatServers
   become: true
-  tasks:
+  tasks:    
     - name: Install Java
-      yum:
-        name: openjdk-17-jdk
-        state: present
+      apt: name={{ item }} update_cache=yes state=present
+      with_items:
+          - openjdk-17-jdk
     - name: add tomcatuser
       user:
         name: tomcat
