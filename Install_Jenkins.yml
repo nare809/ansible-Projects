@@ -11,30 +11,36 @@
       apt: name={{ item }} update_cache=yes state=present
       with_items:
           - openjdk-17-jdk
-  - name: download jenkins.repo
-    get_url:
-     url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
-     dest: /etc/yum.repos.d/jenkins.repo
+          
+  - name: download jenkins key
+    ansible.builtin.get_url:
+      url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+      dest: /usr/share/keyrings/jenkins-keyring.asc
 
-  - name: import jenkins key
-    rpm_key:
-     state: present
-     key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+  - name: Add Jenkins repo
+    ansible.builtin.apt_repository:
+      repo: deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/
+      state: present
+      filename: jenkins.list  
 
-  - name: install jenkins
+  - name: Update all packages to their latest version
     apt:
-     name: jenkins
-     state: present
+      name: "*"
+      state: latest
 
-  - name: start jenkins
-    systemd:
-     name: jenkins
-     state: started
+  - name: Install fontconfig
+    shell: apt install fontconfig -y 
 
-  - name: enable jenkins
-    systemd:
-     name: jenkins
-     enabled: true
+    - name: Install the Jenkins
+    ansible.builtin.apt:
+      name: jenkins
+      state: present  
+
+  - name: Make sure a service unit is running
+    ansible.builtin.systemd:
+      state: started
+      name: jenkins
+      enabled: yes
 
   - name: sleep for 30 seconds and continue with play
     wait_for:
