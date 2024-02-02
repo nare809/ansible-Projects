@@ -1,72 +1,67 @@
-- hosts: tag_Name_tomcatServers
+- hosts: tag_Name_sonarqubeServers
   become: true
   tasks:    
     - name: Install Java
       apt: name={{ item }} update_cache=yes state=present
       with_items:
           - openjdk-17-jdk
-    - name: add tomcatuser
+    - name: install unzip
+      apt:
+        name: unzip
+    - name: add sonar
       user:
-        name: tomcat
+        name: sonar
         shell: /sbin/nologin
     - name: get_installer
       get_url:
-        url: https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.85/bin/apache-tomcat-9.0.85.tar.gz
+        url: https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-9.9.3.79811.zip
         dest: /tmp/
     - name: copy
       copy:
-        src: /tmp/apache-tomcat-9.0.85.tar.gz
-        dest: /usr/local/
+        src: /tmp/sonarqube-10.0.0.68432.zip
+        dest: /opt/
         remote_src: yes
     - name: install
-      unarchive:
-        src: /usr/local/apache-tomcat-9.0.85.tar.gz
-        dest: /usr/local
-        remote_src: yes
+      shell: sudo unzip /opt/sonarqube-10.0.0.68432.zip
     - name: Change file ownership, group and permissions
       file:
-        path: /usr/local/apache-tomcat-9.0.85
-        owner: tomcat
-        group: tomcat
+        path: /etc/sonarqube-9.9.3.79811
+        owner: sonar
+        group: sonar
         recurse: yes
         state: directory
-    - name: make tomcat symbolic
+    - name: rename sonar folder
+      shell: mv /opt/sonarqube-9.9.3.79811 /etc/sonarqube
+    - name: make sonar.service
       file:
-        src: /usr/local/apache-tomcat-9.0.85
-        dest: /usr/local/tomcat9
-        owner: tomcat
-        group: tomcat
-        state: link
-    - name: make tomcat.service
-      file:
-        path: /etc/systemd/system/tomcat.service
+        path: /etc/systemd/system/sonar.service
         state:  touch
     - name: edit tomcat.service
       blockinfile:
-        dest: /etc/systemd/system/tomcat.service
+        dest: /etc/systemd/system/sonar.service
         insertafter:
         block: |
           [Unit]
-          Description = Apache Tomcat 9
-          After = syslog.target network.target
-          [Service]
-          User = tomcat
-          Group = tomcat
-          Type = oneshot
-          PIDFile =/usr/local/apache-tomcat-9.0.85/tomcat.pid
-          RemainAfterExit = yes
-          ExecStart =/usr/local/apache-tomcat-9.0.85/bin/startup.sh
-          ExecStop =/usr/local/apache-tomcat-9.0.85/bin/shutdown.sh
-          ExecReStart =/usr/local/apache-tomcat-9.0.85/bin/shutdown.sh;/usr/local/apache-tomcat-9.0.85/bin/startup.sh
-          [Install]
-          WantedBy = multi-user.target
-    - name: chmod 755 tomcat.service
+              Description=SonarQube service
+              After=syslog.target network.target
+              [Service]
+              Type=forking
+              ExecStart=/opt/sonarqube/bin/linux-x86-64/sonar.sh start
+              ExecStop=/opt/sonarqube/bin/linux-x86-64/sonar.sh stop
+              User=sonar
+              Group=sonar
+              Restart=always
+              LimitNOFILE=65536
+              LimitNPROC=4096
+              [Install]
+              WantedBy=multi-user.target
+    - name: chmod 755 sonar.service
       file:
-        path: /etc/systemd/system/tomcat.service
+        path: /etc/systemd/system/sonar.service
         mode:  0755
-    - name: start tomcat
+    - name: start sonar
       systemd:
-        name: tomcat.service
+        name: sonar.service
         state: started
         daemon_reload: yes
         enabled: yes
